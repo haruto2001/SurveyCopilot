@@ -1,45 +1,58 @@
 from dataclasses import asdict
 
+from more_itertools import ichunked
+
 from modules.llm_interface import LLMInterface
 from modules.paper import Paper
+from utils.prompts import SYSTEM_PROMPT, USER_PROMPT
 
 
 class PaperFilter:
-    """Filters a list of papers using a language model interface.
+    """
+    A class to filter a list of papers using a Language Learning Model (LLM).
 
-    Args:
-        papers (list[Paper]): A list of Paper objects to filter.
-        llm (LLMInterface): An instance of a language model interface for filtering.
+    Attributes:
+        papers (list[Paper]): A list of `Paper` objects to filter.
+        llm (LLMInterface): An interface to interact with the LLM.
+        system_prompt (str): The system prompt to initialize the LLM.
+        user_prompt (str): The user prompt template for the LLM.
     """
 
     def __init__(self, papers: list[Paper], llm: LLMInterface):
-        """Initializes the PaperFilter with papers and a language model interface.
+        """
+        Initializes the PaperFilter with a list of papers and an LLM interface.
 
         Args:
-            papers (list[Paper]): A list of Paper objects to filter.
-            llm (LLMInterface): An instance of a language model interface for filtering.
+            papers (list[Paper]): A list of `Paper` objects to filter.
+            llm (LLMInterface): An instance of `LLMInterface` to interact with the LLM.
         """
         self.papers = papers
         self.llm = llm
+        self.system_prompt = SYSTEM_PROMPT
+        self.user_prompt = USER_PROMPT
 
-    def filter(self) -> list[Paper]:  # TODO: 他のアルゴリズムを実装する
-        """Filters the list of papers using the language model.
+    def filter(self, query: str, chunk_size: int = 10) -> list[Paper]:
+        """
+        Filters the list of papers using the LLM.
 
-        The method takes the first 5 papers from the list, converts them to strings, and sends
-        them to the language model to select 3 papers based on its internal logic.
+        Args:
+            chunk_size (int): The number of papers to process in a single batch. Defaults to 10.
 
         Returns:
-            list[Paper]: A filtered list of 3 Paper objects selected by the language model.
+            list[Paper]: A list of filtered `Paper` objects.
 
-        Note:
-            If the number of papers exceeds 5, the filtering process should ideally be executed
-            in multiple iterations (TODO: implement this in the future).
+        Notes:
+            - Currently, only the default filtering algorithm is implemented.
+            - The method processes up to 15 papers, split into chunks of the specified size.
         """
-        papers = "\n".join([str(asdict(paper)) for paper in self.papers[:5]])  # TODO: 数が多い場合は数回に分けて実行
-        system_prompt = "You are a helpful assistant."
-        user_prompt = f"choose 3 papers.\n\n{papers}"
-        results = self.llm.generate(system_prompt=system_prompt, user_prompt=user_prompt)
-        filtered_papers = results.papers
+        filtered_papers = []
+        for chunk in ichunked(self.papers[:15], chunk_size):
+            papers = "\n".join([str(asdict(paper)) for paper in chunk])
+            results = self.llm.generate(
+                system_prompt=self.system_prompt,
+                user_prompt=self.user_prompt.format(query=query, papers=papers),
+            )
+            filtered_papers += results.papers
         return filtered_papers
 
 
