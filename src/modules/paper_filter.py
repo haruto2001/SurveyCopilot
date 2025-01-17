@@ -1,6 +1,7 @@
 from dataclasses import asdict
 
 from more_itertools import ichunked
+from tqdm import tqdm
 
 from modules.llm_interface import LLMInterface
 from modules.paper import Paper
@@ -46,7 +47,7 @@ class PaperFilter:
             - The method processes up to 15 papers, split into chunks of the specified size.
         """
         filtered_papers = []
-        for chunk in ichunked(self.papers[:15], chunk_size):
+        for chunk in ichunked(tqdm(self.papers), chunk_size):
             papers = "\n".join([str(asdict(paper)) for paper in chunk])
             results = self.llm.generate(
                 system_prompt=self.system_prompt,
