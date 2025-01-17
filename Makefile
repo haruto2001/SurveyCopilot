@@ -7,6 +7,7 @@ build:
 
 run-cpu:
 	docker run -it --rm \
+	--env-file ./.env \
 	--mount type=bind,src=./pyproject.toml,dst=/work/pyproject.toml \
 	--mount type=bind,src=./uv.lock,dst=/work/uv.lock \
 	--mount type=bind,src=./.python-version,dst=/work/.python-version \
