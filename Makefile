@@ -15,8 +15,8 @@ run-cpu:
 	--mount type=bind,src=./src,dst=/work/src \
 	$(IMAGE_NAME) bash
 
-check: ./src
-	poetry run ruff check ./src
+check:
+	uvx ruff check ./src
 
-format: ./src
-	poetry run ruff format --diff ./src
+format:
+	uvx ruff format --diff ./src
