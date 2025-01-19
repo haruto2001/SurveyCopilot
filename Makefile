@@ -1,4 +1,4 @@
-.PHONY: build run-cpu run-gpu chack format
+.PHONY: build run-cpu run-gpu chack format isort
 
 IMAGE_NAME = "survey-copilot"
 
@@ -20,3 +20,6 @@ check:
 
 format:
 	uvx ruff format --diff ./src
+
+isort:
+	uvx isort --diff ./src
