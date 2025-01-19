@@ -18,7 +18,12 @@ class SlackNotifier:
         headers (dict): The headers for the Slack API request.
     """
 
-    def __init__(self, bot_token: str, channel: str = "dev-survey-copilot", icon_emoji: str = ":ghost:") -> None:
+    def __init__(
+        self,
+        bot_token: str,
+        channel: str = "dev-survey-copilot",
+        icon_emoji: str = ":ghost:",
+    ) -> None:
         """
         Initializes the SlackNotifier with the given bot token, channel, and icon emoji.
 
@@ -97,10 +102,15 @@ class SlackPaperNotifier(SlackNotifier):
         icon_emoji (str, optional): The emoji icon to display with messages. Defaults to ":ghost:".
     """
 
-    def __init__(self, bot_token: str, channel: str = "dev-survey-copilot", icon_emoji: str = ":ghost:") -> None:
+    def __init__(
+        self,
+        bot_token: str,
+        channel: str = "dev-survey-copilot",
+        icon_emoji: str = ":ghost:",
+    ) -> None:
         """
         Initializes the SlackPaperNotifier with the given bot token, channel, and icon emoji.
-        
+
         Args:
             bot_token (str): The Slack bot token for authentication.
             channel (str, optional): The Slack channel where messages will be sent. Defaults to "dev-survey-copilot".
@@ -129,5 +139,5 @@ class SlackPaperNotifier(SlackNotifier):
         Returns:
             str: The formatted message containing the paper's title, authors, and abstract.
         """
-        message = f"Title: {paper.title}\nAuthors: {", ".join(paper.authors)}\nAbstract: {paper.abstract}"
+        message = f"Title: {paper.title}\nAuthors: {', '.join(paper.authors)}\nAbstract: {paper.abstract}"
         return message

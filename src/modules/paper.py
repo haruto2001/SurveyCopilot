@@ -10,6 +10,7 @@ class Paper:
         authors (list[str]): A list of authors' names who contributed to the paper.
         abstract (str): A brief summary or abstract of the paper.
     """
+
     title: str
     authors: list[str]
     abstract: str
