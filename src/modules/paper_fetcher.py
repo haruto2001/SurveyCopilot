@@ -1,12 +1,13 @@
 import json
 import os
 import xml.etree.ElementTree as ET
+from dataclasses import asdict
 from urllib.parse import urlencode
 
 import feedparser
-from dataclasses import asdict
 
 from modules.paper import Paper
+from modules.query_params import AclAnthologyQueryParams, ArxivQueryParams
 
 
 class PaperFetcher:
@@ -34,7 +35,7 @@ class PaperFetcher:
         """
         return self.papers
 
-    def export(self, save_path: str) -> None:  # TODO: exportとは別に，すべての論文情報を返すメソッドが欲しい
+    def export(self, save_path: str) -> None:
         """
         Exports the stored papers to a JSON Lines file.
 
@@ -67,7 +68,7 @@ class AclAnthologyPaperFetcher(PaperFetcher):
         super().__init__()
         self.data_dir = "/work/tools/acl-anthology/data/xml"
 
-    def fetch(self, year: int = 2024, conference: str = "acl"):
+    def fetch(self, params: AclAnthologyQueryParams) -> list[Paper]:
         """
         Fetches papers from the ACL Anthology dataset.
 
@@ -78,7 +79,7 @@ class AclAnthologyPaperFetcher(PaperFetcher):
         Returns:
             list[Paper]: A list of fetched `Paper` objects.
         """
-        xml_path = os.path.join(self.data_dir, f"{year}.{conference}.xml")
+        xml_path = os.path.join(self.data_dir, f"{params.year}.{params.conference}.xml")
         tree = ET.parse(xml_path)
         fetched_papers = self._parse_tree(tree)
         self.papers += fetched_papers
@@ -99,7 +100,9 @@ class AclAnthologyPaperFetcher(PaperFetcher):
             Paper(
                 title=element.findtext("title"),
                 authors=[
-                    " ".join([author.findtext("first"), author.findtext("last")])  # "first_name last_name"の形式
+                    " ".join(
+                        [author.findtext("first"), author.findtext("last")]
+                    )  # "first_name last_name"の形式
                     for author in element.findall("author")
                 ],
                 abstract=element.findtext("abstract"),
@@ -126,13 +129,7 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
         super().__init__()
         self.base_url = "https://export.arxiv.org/api/query"
 
-    def fetch(
-        self,
-        category: str = "cs.CL",
-        start: str = "20240101",
-        end: str = "20240102",
-        max_results: int = 10,
-    ) -> list[Paper]:
+    def fetch(self, params: ArxivQueryParams) -> list[Paper]:
         """
         Fetches papers from the arXiv API based on the specified criteria.
 
@@ -145,7 +142,12 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
         Returns:
             list[Paper]: A list of fetched `Paper` objects.
         """
-        query = self._build_query(category=category, start=start, end=end, max_results=max_results)
+        query = self._build_query(
+            category=params.category,
+            start=params.start,
+            end=params.end,
+            max_results=params.max_results,
+        )
         url = self.base_url + "?" + query
         feed = feedparser.parse(url)
         fetched_papers = self._parse_feed(feed)
@@ -191,9 +193,3 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
             for entry in feed.entries
         ]
         return parsed_papers
-
-
-if __name__ == "__main__":
-    paper_fetcher = AclAnthologyPaperFetcher()
-    papers = paper_fetcher.fetch(year=2024, conference="acl")
-    breakpoint()
