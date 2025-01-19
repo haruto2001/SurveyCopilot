@@ -1,10 +1,13 @@
 # SurveyCopilot
 
+SurveyCopilotは，研究における論文のサーベイを効率化するツールです．
+このツールは，arXivやACL Anthologyに公開されている論文情報を取得し，ユーザーが設定したクエリに基づいてフィルタリングを行います．
+また，フィルタリングされた論文はSlackに通知されます．
 
 
-## Usage
+## Installation
 
-1. リポジトリをクローンして移動
+リポジトリをクローンして移動
 
 ```bash
 git clone https://github.com/haruto2001/SurveyCopilot.git
@@ -12,14 +15,21 @@ cd SurveyCopilot
 ```
 
 
-2. `.env`ファイルの作成
+## Usage
+
+1. `.env`ファイルの作成
 
 ```bash
-echo "OPENAI_API_KEY=sk-..." > .env
+touch .env
+echo "OPENAI_API_KEY=sk-..." >> .env
+echo "SLACK_BOT_TOKEN=xoxb-..." >> .env
 ```
 
+> [!NOTE]
+> `SLACK_BOT_TOKEN`を取得するためには，Slack Botを作成する必要があります．（参考：[Slack API Quickstart](https://api.slack.com/quickstart)）
 
-3. dockerイメージのビルド
+
+2. dockerイメージのビルド
 
 - `make`コマンドが使える場合
 
@@ -34,7 +44,7 @@ docker build . -t survey-copilot
 ```
 
 
-4. dockerコンテナの立ち上げ
+3. dockerコンテナの立ち上げ
 
 - `make`コマンドが使える場合
 
@@ -54,3 +64,8 @@ docker run -it --rm \
 --mount type=bind,src=./src,dst=/work/src \
 survey-copilot bash
 ```
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
