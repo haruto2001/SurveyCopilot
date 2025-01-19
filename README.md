@@ -26,7 +26,8 @@ echo "SLACK_BOT_TOKEN=xoxb-..." >> .env
 ```
 
 > [!NOTE]
-> `SLACK_BOT_TOKEN`を取得するためには，Slack Botを作成する必要があります．（参考：[Slack API Quickstart](https://api.slack.com/quickstart)）
+> `SLACK_BOT_TOKEN`を取得するには，Slack Botを作成する必要があります．（参考：[Slack API Quickstart](https://api.slack.com/quickstart)）
+> また，`SLACK_BOT_TOKEN`の設定は任意です．設定しない場合，標準出力にのみ出力されます．
 
 
 2. dockerイメージのビルド
