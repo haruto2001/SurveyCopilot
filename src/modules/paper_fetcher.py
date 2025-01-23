@@ -7,8 +7,8 @@ from urllib.parse import urlencode
 import feedparser
 import openreview
 
-from paper import Paper
-from query_params import ArxivQueryParams, ConferenceQueryParams
+from modules.paper import Paper
+from modules.query_params import ArxivQueryParams, ConferenceQueryParams
 
 
 class PaperFetcher:
