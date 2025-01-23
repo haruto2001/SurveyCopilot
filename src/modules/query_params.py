@@ -10,6 +10,6 @@ class ArxivQueryParams:
 
 
 @dataclass(frozen=True)
-class AclAnthologyQueryParams:
-    year: int
+class ConferenceQueryParams:
     conference: str
+    year: int
