@@ -9,5 +9,6 @@ dependencies = [
     "ipython>=8.31.0",
     "more-itertools>=10.6.0",
     "openai>=1.59.7",
+    "openreview-py>=1.46.0",
     "requests>=2.32.3",
 ]
