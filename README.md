@@ -23,6 +23,8 @@ cd SurveyCopilot
 touch .env
 echo "OPENAI_API_KEY=sk-..." >> .env
 echo "SLACK_BOT_TOKEN=xoxb-..." >> .env
+echo "OPENREVIEW_USERNAME=..." >> .env
+echo "OPENREVIEW_PASSWORD=..." >> .env
 ```
 
 > [!NOTE]
