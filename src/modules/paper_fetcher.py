@@ -5,9 +5,10 @@ from dataclasses import asdict
 from urllib.parse import urlencode
 
 import feedparser
+import openreview
 
-from modules.paper import Paper
-from modules.query_params import AclAnthologyQueryParams, ArxivQueryParams
+from paper import Paper
+from query_params import ArxivQueryParams, ConferenceQueryParams
 
 
 class PaperFetcher:
@@ -17,7 +18,7 @@ class PaperFetcher:
         papers (list[Paper]): A list to store fetched `Paper` objects.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes a PaperFetcher instance.
 
@@ -26,14 +27,23 @@ class PaperFetcher:
         """
         self.papers = []
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns the number of fetched papers.
 
         Returns:
             int: The number of papers stored in `self.papers`.
         """
-        return self.papers
+        return len(self.papers)
+
+    def _update_papers(self, new_papers: list[Paper]) -> None:
+        """
+        Updates the list of fetched papers.
+
+        Args:
+            fetched_papers (list[Paper]): A list of fetched `Paper` objects.
+        """
+        self.papers += new_papers
 
     def export(self, save_path: str) -> None:
         """
@@ -58,7 +68,7 @@ class AclAnthologyPaperFetcher(PaperFetcher):
         data_dir (str): The directory containing ACL Anthology XML files.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes an AclAnthologyPaperFetcher instance.
 
@@ -68,13 +78,12 @@ class AclAnthologyPaperFetcher(PaperFetcher):
         super().__init__()
         self.data_dir = "/work/tools/acl-anthology/data/xml"
 
-    def fetch(self, params: AclAnthologyQueryParams) -> list[Paper]:
+    def fetch(self, params: ConferenceQueryParams) -> list[Paper]:
         """
         Fetches papers from the ACL Anthology dataset.
 
         Args:
-            year (int): The year of the conference.
-            conference (str): The acronym of the conference.
+            params (ConferenceQueryParams): Query parameters including year and conference.
 
         Returns:
             list[Paper]: A list of fetched `Paper` objects.
@@ -82,7 +91,7 @@ class AclAnthologyPaperFetcher(PaperFetcher):
         xml_path = os.path.join(self.data_dir, f"{params.year}.{params.conference}.xml")
         tree = ET.parse(xml_path)
         fetched_papers = self._parse_tree(tree)
-        self.papers += fetched_papers
+        self._update_papers(fetched_papers)
         return fetched_papers
 
     def _parse_tree(self, tree: ET.ElementTree) -> list[Paper]:
@@ -119,7 +128,7 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
         base_url (str): The base URL for the arXiv API.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes an ArxivPaperFetcher instance.
 
@@ -134,10 +143,7 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
         Fetches papers from the arXiv API based on the specified criteria.
 
         Args:
-            category (str, optional): The arXiv category. Defaults to "cs.CL".
-            start (str, optional): The start date in the format YYYYMMDD. Defaults to "20240101".
-            end (str, optional): The end date in the format YYYYMMDD. Defaults to "20240102".
-            max_results (int, optional): The maximum number of results to fetch. Defaults to 10.
+            params (ArxivQueryParams): The query parameters including category, start date, end date, and max results.
 
         Returns:
             list[Paper]: A list of fetched `Paper` objects.
@@ -151,27 +157,24 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
         url = self.base_url + "?" + query
         feed = feedparser.parse(url)
         fetched_papers = self._parse_feed(feed)
-        self.papers += fetched_papers
+        self._update_papers(fetched_papers)
         return fetched_papers
 
-    def _build_query(self, category: str, start: str, end: str, max_results: int):
+    def _build_query(self, params: ArxivQueryParams) -> str:
         """
         Builds a query string for the arXiv API.
 
         Args:
-            category (str): The arXiv category.
-            start (str): The start date in the format YYYYMMDD.
-            end (str): The end date in the format YYYYMMDD.
-            max_results (int): The maximum number of results to fetch.
+            params (ArxivQueryParams): The query parameters including category, start date, end date, and max results.
 
         Returns:
             str: The constructed query string.
         """
-        params = {
-            "search_query": f"cat:{category} AND submittedDate:[{start} TO {end}]",
-            "max_results": max_results,
+        query_params = {
+            "search_query": f"cat:{params.category} AND submittedDate:[{params.start} TO {params.end}]",
+            "max_results": params.max_results,
         }
-        query = urlencode(params)
+        query = urlencode(query_params)
         return query
 
     def _parse_feed(self, feed: feedparser.FeedParserDict) -> list[Paper]:
@@ -193,3 +196,51 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
             for entry in feed.entries
         ]
         return parsed_papers
+
+
+class OpenReviewPaperFetcher(PaperFetcher):
+    """Fetches papers from OpenReview using provided credentials and query parameters.
+
+    Attributes:
+        client (openreview.Client): A client instance for interacting with the OpenReview API.
+    """
+
+    def __init__(self, username: str, password: str) -> None:
+        """Initializes the OpenReviewPaperFetcher with the provided credentials.
+
+        Args:
+            username (str): The username for OpenReview authentication.
+            password (str): The password for OpenReview authentication.
+        """
+        super().__init__()
+        self.client = openreview.Client(
+            baseurl="https://api.openreview.net",
+            username=username,
+            password=password,
+        )
+
+    def fetch(self, params: ConferenceQueryParams) -> list[Paper]:
+        """Fetches papers based on the specified query parameters.
+
+        Args:
+            params (ConferenceQueryParams): The query parameters containing the conference name and year.
+
+        Returns:
+            list[Paper]: A list of `Paper` objects fetched from OpenReview.
+
+        Example:
+            params = ConferenceQueryParams(conference="ICLR", year=2024)
+            papers = fetcher.fetch(params)
+        """
+        invitation = f"{params.conference}.cc/{params.year}/Conference/-/Blind_Submission"
+        notes = openreview.tools.iterget_notes(self.client, invitation=invitation)
+        fetched_papers = [
+            Paper(
+                title=note.content["title"],
+                authors=note.content["authors"],
+                abstract=note.content["abstract"],
+            )
+            for note in notes
+        ]
+        self._update_papers(fetched_papers)
+        return fetched_papers
