@@ -30,7 +30,43 @@ class PaperFilter:
         self.system_prompt = SYSTEM_PROMPT
         self.user_prompt = USER_PROMPT
 
-    def filter(
+    def filter(self, papers: list[Paper], query: str, mode: str = "matching") -> list[Paper]:
+        """
+        Filters a list of papers using a keyword or the LLM.
+
+        Args:
+            papers (list[Paper]): A list of `Paper` objects to filter.
+            query (str): The keyword or query to filter the papers.
+            mode (str): The filtering mode to use. Defaults to "matching".
+
+        Returns:
+            list[Paper]: A list of filtered `Paper` objects.
+        """
+        if mode == "matching":
+            return self._filter_by_matching(papers=papers, query=query)
+        elif mode == "llm":
+            return self._filter_by_llm(papers=papers, query=query)
+        else:
+            raise ValueError(f"Invalid mode: {mode}")
+
+    def _filter_by_matching(self, papers: list[Paper], query: str) -> list[Paper]:
+        """
+        Filters the list of papers using a keyword.
+
+        Args:
+            papers (list[Paper]): A list of `Paper` objects to filter.
+            keyword (str): The keyword to filter the papers.
+
+        Returns:
+            list[Paper]: A list of filtered `Paper` objects.
+        """
+        filtered_papers = []
+        for paper in tqdm(papers):
+            if query in paper.title or query in paper.abstract:
+                filtered_papers.append(paper)
+        return filtered_papers
+
+    def _filter_by_llm(
         self, papers: list[Paper], query: str, chunk_size: int = 10
     ) -> list[Paper]:
         """
