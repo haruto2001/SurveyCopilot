@@ -15,7 +15,7 @@ def parse_args() -> argparse.Namespace:
         description="Filter research papers using a Language Learning Model."
     )
     parser.add_argument(
-        "--cateogry", type=str, default="cs.CL", help="The category of papers to fetch."
+        "--category", type=str, default="cs.CL", help="The category of papers to fetch."
     )
     parser.add_argument(
         "--start",
@@ -29,9 +29,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max_results",
         type=int,
-        default=10,
+        default=100,
         help="The maximum number of papers to fetch.",
     )
+    parser.add_argument(
+        "--filtering_mode",
+        type=str,
+        default="matching",
+        choices=["matching", "llm"],
+        help="The filtering mode to use.",
+    )
+    parser.add_argument("--keyword", type=str, default="LVLM")
     parser.add_argument(
         "--prompt",
         type=str,
@@ -53,12 +61,19 @@ def main(args: argparse.Namespace) -> None:
         slack_notifier=slack_notifier,
     )
     params = ArxivQueryParams(
-        category=args.cateogry,
+        category=args.category,
         start=args.start,
         end=args.end,
         max_results=args.max_results,
     )
-    papers = pipeline.run(fetching_params=params, filtering_query=args.prompt)
+
+    if args.filtering_mode == "matching":
+        filtering_query = args.keyword
+    elif args.filtering_mode == "llm":
+        filtering_query = args.prompt
+    else:
+        raise ValueError(f"Invalid filtering mode: {args.filtering_mode}")
+    papers = pipeline.run(fetching_params=params, filtering_query=filtering_query, filtering_mode=args.filtering_mode)
 
     for paper in papers:
         print_paper(paper)

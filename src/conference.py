@@ -15,10 +15,20 @@ def parse_args() -> argparse.Namespace:
         description="Filter research papers using a Language Learning Model."
     )
     parser.add_argument(
-        "-conference", type=str, default="acl", help="The conference to fetch."
+        "-conference", type=str, default="ACL", help="The conference to fetch."
     )
     parser.add_argument(
         "--year", type=int, default=2024, help="The year of the conference."
+    )
+    parser.add_argument(
+        "--filtering_mode",
+        type=str,
+        default="matching",
+        choices=["matching", "llm"],
+        help="The filtering mode to use.",
+    )
+    parser.add_argument(
+        "--keyword", type=str, default="LVLM", help="The keyword to filter papers."
     )
     parser.add_argument(
         "--prompt",
@@ -32,12 +42,19 @@ def parse_args() -> argparse.Namespace:
 def main(args: argparse.Namespace) -> None:
     if is_in_acl_anthology(conference=args.conference):
         paper_fetcher = AclAnthologyPaperFetcher()
+        params = ConferenceQueryParams(
+            conference=args.conference.lower(),
+            year=args.year,
+        )
     elif is_in_openreview(conference=args.conference):
         paper_fetcher = OpenReviewPaperFetcher()
+        params = ConferenceQueryParams(
+            conference=args.conference,
+            year=args.year,
+        )
     else:
         raise ValueError(f"Conference '{args.conference}' is not supported.")
 
-    paper_fetcher = AclAnthologyPaperFetcher()
     llm = LLMInterface(api_key=os.environ.get("OPENAI_API_KEY"))
     paper_filter = PaperFilter(llm=llm)
     slack_notifier = SlackPaperNotifier(bot_token=os.environ.get("SLACK_BOT_TOKEN"))
@@ -47,11 +64,14 @@ def main(args: argparse.Namespace) -> None:
         paper_filter=paper_filter,
         slack_notifier=slack_notifier,
     )
-    params = ConferenceQueryParams(
-        conference=args.conference,
-        year=args.year,
-    )
-    papers = pipeline.run(fetching_params=params, filtering_query=args.prompt)
+
+    if args.filtering_mode == "matching":
+        filtering_query = args.keyword
+    elif args.filtering_mode == "llm":
+        filtering_query = args.prompt
+    else:
+        raise ValueError(f"Invalid filtering mode: {args.filtering_mode}")
+    papers = pipeline.run(fetching_params=params, filtering_query=filtering_query, filtering_mode=args.filtering_mode)
 
     for paper in papers:
         print_paper(paper)
