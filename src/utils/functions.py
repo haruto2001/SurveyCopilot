@@ -36,8 +36,8 @@ def is_in_acl_anthology(conference: str) -> bool:
     ]
 
 
-def is_in_openreview() -> bool:
-    return ["ICLR", "NeurIPS"]
+def is_in_openreview(conference: str) -> bool:
+    return conference in ["ICLR", "NeurIPS"]
 
 
 def print_paper(paper: Paper) -> None:
