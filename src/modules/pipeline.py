@@ -26,7 +26,9 @@ class Pipeline:
         save_path: Optional[str] = None,
     ) -> list[Paper]:
         papers = self.paper_fetcher.fetch(params=fetching_params)
-        filtered_papers = self.paper_filter.filter(papers=papers, query=filtering_query, mode=filtering_mode)
+        filtered_papers = self.paper_filter.filter(
+            papers=papers, query=filtering_query, mode=filtering_mode
+        )
         if self.slack_notifier is not None:
             self.slack_notifier.send_message(message=f"Query: {filtering_query}")
             for paper in filtered_papers:

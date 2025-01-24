@@ -30,7 +30,9 @@ class PaperFilter:
         self.system_prompt = SYSTEM_PROMPT
         self.user_prompt = USER_PROMPT
 
-    def filter(self, papers: list[Paper], query: str, mode: str = "matching") -> list[Paper]:
+    def filter(
+        self, papers: list[Paper], query: str, mode: str = "matching"
+    ) -> list[Paper]:
         """
         Filters a list of papers using a keyword or the LLM.
 

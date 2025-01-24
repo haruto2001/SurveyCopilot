@@ -71,7 +71,11 @@ def main(args: argparse.Namespace) -> None:
         filtering_query = args.prompt
     else:
         raise ValueError(f"Invalid filtering mode: {args.filtering_mode}")
-    papers = pipeline.run(fetching_params=params, filtering_query=filtering_query, filtering_mode=args.filtering_mode)
+    papers = pipeline.run(
+        fetching_params=params,
+        filtering_query=filtering_query,
+        filtering_mode=args.filtering_mode,
+    )
 
     for paper in papers:
         print_paper(paper)
