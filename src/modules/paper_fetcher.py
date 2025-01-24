@@ -148,12 +148,7 @@ class ArxivPaperFetcher(PaperFetcher):  # ?: Papersクラスも欲しいかも�
         Returns:
             list[Paper]: A list of fetched `Paper` objects.
         """
-        query = self._build_query(
-            category=params.category,
-            start=params.start,
-            end=params.end,
-            max_results=params.max_results,
-        )
+        query = self._build_query(params)
         url = self.base_url + "?" + query
         feed = feedparser.parse(url)
         fetched_papers = self._parse_feed(feed)
