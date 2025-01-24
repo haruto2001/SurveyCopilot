@@ -3,7 +3,7 @@ from typing import Optional, Union
 from modules.paper import Paper
 from modules.paper_fetcher import AclAnthologyPaperFetcher, ArxivPaperFetcher
 from modules.paper_filter import PaperFilter
-from modules.query_params import AclAnthologyQueryParams, ArxivQueryParams
+from modules.query_params import ArxivQueryParams, ConferenceQueryParams
 from modules.slack_notifier import SlackPaperNotifier
 
 
@@ -20,12 +20,13 @@ class Pipeline:
 
     def run(  # TODO: exportに対応させる（フィルタ後のpaperを保存できるように）
         self,
-        fetching_params: Union[AclAnthologyQueryParams, ArxivQueryParams],
+        fetching_params: Union[ConferenceQueryParams, ArxivQueryParams],
+        filtering_mode: str,
         filtering_query: str,
         save_path: Optional[str] = None,
     ) -> list[Paper]:
         papers = self.paper_fetcher.fetch(params=fetching_params)
-        filtered_papers = self.paper_filter.filter(query=filtering_query, papers=papers)
+        filtered_papers = self.paper_filter.filter(papers=papers, query=filtering_query, mode=filtering_mode)
         if self.slack_notifier is not None:
             self.slack_notifier.send_message(message=f"Query: {filtering_query}")
             for paper in filtered_papers:
